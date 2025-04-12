@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎮 Retro Game Command Center</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background-color: #111;
+      color: #0f0;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    h1 {
+      color: #00ff88;
+    }
+
+    select, button, textarea {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #222;
+      color: #0f0;
+      border: 1px solid #0f0;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 2px solid #0f0;
+      margin-top: 20px;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .log {
+      margin-top: 30px;
+      border-top: 1px solid #0f0;
+      padding-top: 20px;
+    }
+
+    hr {
+      border: 1px dashed #0f0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎮 Retro Game Command Center</h1>
+
+  <label for="gameSelector">Select a Game:</label>
+  <select id="gameSelector">
+    <option value="https://gam.onl/psx/heart-of-darkness.html#heart-of-darkness">Heart of Darkness (PS1)</option>
+    <option value="https://gam.onl/n64/conker-bad-fur-day.html#conker-bad-fur-day">Conker's Bad Fur Day (N64)</option>
+    <option value="https://gam.onl/n64/super-mario-64.html#super-mario-64">Super Mario 64 (N64)</option>
+  </select>
+
+  <button onclick="launchGame()">▶️ Play Game</button>
+  <button onclick="stopTimer()">⏹ Stop Playing</button>
+
+  <label for="gameNotes">📝 Notes or Rating:</label>
+  <textarea id="gameNotes" placeholder="Write your experience here..."></textarea>
+  <button onclick="saveGameLog()">💾 Save Log</button>
+
+  <iframe id="gameIframe" src=""></iframe>
+
+  <div class="log" id="logDisplay"></div>
+
+  <script>
+    let startTime;
+
+    function launchGame() {
+      const gameUrl = document.getElementById("gameSelector").value;
+      document.getElementById("gameIframe").src = gameUrl;
+      startTime = Date.now();
+      alert("Game launched and timer started!");
+    }
+
+    function stopTimer() {
+      if (!startTime) {
+        alert("Start playing a game first!");
+        return;
+      }
+      const duration = Math.floor((Date.now() - startTime) / 1000);
+      localStorage.setItem("lastDuration", duration);
+      alert(`Stopped. You played for ${duration} seconds.`);
+    }
+
+    function saveGameLog() {
+      const game = document.getElementById("gameSelector").options[document.getElementById("gameSelector").selectedIndex].text;
+      const url = document.getElementById("gameSelector").value;
+      const notes = document.getElementById("gameNotes").value;
+      const duration = localStorage.getItem("lastDuration") || 0;
+      const timestamp = new Date().toLocaleString();
+
+      const log = {
+        game,
+        url,
+        duration,
+        notes,
+        timestamp
+      };
+
+      let logs = JSON.parse(localStorage.getItem("gameLogs") || "[]");
+      logs.push(log);
+      localStorage.setItem("gameLogs", JSON.stringify(logs));
+      displayLogs();
+    }
+
+    function displayLogs() {
+      const logs = JSON.parse(localStorage.getItem("gameLogs") || "[]");
+      const logDisplay = document.getElementById("logDisplay");
+      if (logs.length === 0) {
+        logDisplay.innerHTML = "<p>No logs yet.</p>";
+        return;
+      }
+
+      logDisplay.innerHTML = "<h2>📜 Your Game Logs:</h2>" + logs.map(log => `
+        <p>
+          <b>${log.game}</b><br>
+          ⏱ Time Played: ${log.duration} sec<br>
+          📌 Notes: ${log.notes}<br>
+          🕒 Date: ${log.timestamp}<br>
+          🔗 <a href="${log.url}" target="_blank" style="color: #0ff;">Replay</a>
+        </p><hr>
+      `).join("");
+    }
+
+    displayLogs();
+  </script>
+
+</body>
+</html>
